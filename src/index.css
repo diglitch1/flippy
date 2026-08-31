@@ -212,6 +212,52 @@ input[type='text'] {
   color: var(--accent);
   cursor: pointer;
 }
+.chip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Cards-per-sheet presets */
+.presets {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+.presets__label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.presets .chip {
+  margin-left: 0;
+  min-width: 2rem;
+}
+.chip--on {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+/* Toggle rows */
+.toggle {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 0.35rem 0;
+}
+.toggle input {
+  margin-top: 0.2rem;
+  accent-color: var(--accent);
+}
+.toggle > span {
+  display: flex;
+  flex-direction: column;
+}
+.toggle__hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
 .btn {
   display: inline-block;
   padding: 0.65rem 1.1rem;

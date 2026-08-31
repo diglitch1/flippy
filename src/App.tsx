@@ -13,7 +13,7 @@ import {
 import type { FlipbookOptions, VideoInfo } from './types';
 import { loadVideo, releaseVideo, validateVideoFile } from './lib/video';
 import { computeLayout, recommendFrameCount, sampleTimestamps } from './lib/layout';
-import { captureWidthForCm, extractFrames } from './lib/frames';
+import { buildSequence, captureWidthForCm, extractFrames } from './lib/frames';
 import { buildFlipbookPdf } from './lib/pdf';
 
 type Stage = 'idle' | 'loaded' | 'generating' | 'done';
@@ -29,6 +29,8 @@ function defaultOptions(duration: number): FlipbookOptions {
     includeCover: false,
     title: '',
     credits: '',
+    grayscale: false,
+    boomerang: false,
   };
 }
 
@@ -83,11 +85,13 @@ export default function App() {
       const layout = computeLayout({ ...options }, video.aspect);
       const maxWidthPx = captureWidthForCm(layout.imgW);
       const timestamps = sampleTimestamps(options.frameCount, trim.start, trim.end);
-      const frames = await extractFrames(video, timestamps, {
+      const captured = await extractFrames(video, timestamps, {
         maxWidthPx,
         quality: options.jpegQuality,
+        grayscale: options.grayscale,
         onProgress: (done, total) => setProgress({ done, total }),
       });
+      const frames = buildSequence(captured, options.boomerang);
 
       const urls = frames.map((f) =>
         URL.createObjectURL(new Blob([f.jpeg as BlobPart], { type: 'image/jpeg' })),

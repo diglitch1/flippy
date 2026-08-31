@@ -10,7 +10,15 @@ import {
   smoothnessForFps,
 } from '../constants';
 import type { BindingSide, FlipbookOptions, PaperSize } from '../types';
-import { computeLayout, fpsForFrameCount, recommendFrameCount } from '../lib/layout';
+import {
+  cardWidthForTarget,
+  computeLayout,
+  effectiveFrameCount,
+  fpsForFrameCount,
+  recommendFrameCount,
+} from '../lib/layout';
+
+const DENSITY_PRESETS = [6, 12, 24];
 
 interface Trim {
   start: number;
@@ -36,7 +44,9 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
   const layout = useMemo(() => computeLayout({ ...options }, aspect), [options, aspect]);
   const effFps = fpsForFrameCount(options.frameCount, clipSeconds);
   const tier = smoothnessForFps(effFps);
-  const manyPages = layout.pageCount > SOFT_MAX_PAGES;
+  const totalCards = effectiveFrameCount(options.frameCount, options.boomerang);
+  const pageCount = Math.max(1, Math.ceil(totalCards / layout.cardsPerPage));
+  const manyPages = pageCount > SOFT_MAX_PAGES;
 
   const maxFrames = Math.min(MAX_FRAMES, Math.max(MIN_FRAMES, Math.round(clipSeconds * 20)));
 
@@ -137,10 +147,13 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
         </div>
       </div>
 
-      {/* Card width */}
+      {/* Card width + cards-per-sheet presets */}
       <div className="field">
         <label className="field__label">
           Card size <span className="field__value">{options.cardWidthCm.toFixed(1)} cm wide</span>
+          <span className="field__value" style={{ marginLeft: 'auto', color: 'var(--muted)' }}>
+            {layout.cardsPerPage} per sheet
+          </span>
         </label>
         <p className="field__hint">
           How big each printed card is. Smaller cards fit more per page, so less paper and cutting.
@@ -154,6 +167,20 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
           onChange={(e) => set('cardWidthCm', Number(e.target.value))}
           disabled={busy}
         />
+        <div className="presets">
+          <span className="presets__label">Fit per sheet:</span>
+          {DENSITY_PRESETS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={`chip${layout.cardsPerPage === n ? ' chip--on' : ''}`}
+              onClick={() => set('cardWidthCm', cardWidthForTarget(n, options, aspect))}
+              disabled={busy}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Gutter */}
@@ -190,9 +217,37 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
         />
       </div>
 
+      {/* Extras */}
+      <div className="field">
+        <label className="toggle">
+          <input
+            type="checkbox"
+            checked={options.grayscale}
+            onChange={(e) => set('grayscale', e.target.checked)}
+            disabled={busy}
+          />
+          <span>
+            <strong>Black &amp; white</strong>
+            <span className="toggle__hint">Cheaper to print on most home printers.</span>
+          </span>
+        </label>
+        <label className="toggle">
+          <input
+            type="checkbox"
+            checked={options.boomerang}
+            onChange={(e) => set('boomerang', e.target.checked)}
+            disabled={busy}
+          />
+          <span>
+            <strong>Boomerang</strong>
+            <span className="toggle__hint">Plays forward then back, so it loops seamlessly (about double the cards).</span>
+          </span>
+        </label>
+      </div>
+
       <div className={`estimate${manyPages ? ' estimate--warn' : ''}`}>
-        <strong>{layout.pageCount}</strong> page{layout.pageCount === 1 ? '' : 's'} to print ·{' '}
-        <strong>{layout.cardsPerPage}</strong> cards per sheet
+        <strong>{pageCount}</strong> page{pageCount === 1 ? '' : 's'} to print ·{' '}
+        <strong>{totalCards}</strong> cards total · {layout.cardsPerPage} per sheet
         {manyPages && <span className="estimate__note"> (that is a lot of cutting; consider fewer frames)</span>}
       </div>
 
