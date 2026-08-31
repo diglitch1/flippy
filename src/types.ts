@@ -32,10 +32,10 @@ export interface FlipbookOptions {
   /** How many cards/frames to produce. */
   frameCount: number;
   paper: PaperSize;
-  /** Card width in inches (image width = cardWidth - gutter). */
-  cardWidthIn: number;
-  /** Blank binding/staple padding in inches, placed on the bound edge. */
-  gutterIn: number;
+  /** Card width in centimeters (image width = cardWidth - gutter). */
+  cardWidthCm: number;
+  /** Blank binding/staple padding in centimeters, placed on the bound edge. */
+  gutterCm: number;
   bindingSide: BindingSide;
   /** JPEG quality 0..1 for embedded frames. */
   jpegQuality: number;
@@ -45,7 +45,7 @@ export interface FlipbookOptions {
   credits: string;
 }
 
-/** Geometry for one card slot on a page, in inches (origin = top-left of page). */
+/** Geometry for one card slot on a page, in centimeters (origin = top-left of page). */
 export interface CardSlot {
   /** Outer card box (includes gutter). */
   cardX: number;

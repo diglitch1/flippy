@@ -29,8 +29,8 @@ function makeFrames(n: number): Frame[] {
 const opts = (over: Partial<FlipbookOptions> = {}): FlipbookOptions => ({
   frameCount: 20,
   paper: 'letter',
-  cardWidthIn: 2.5,
-  gutterIn: 0.5,
+  cardWidthCm: 6,
+  gutterCm: 1.3,
   bindingSide: 'left',
   jpegQuality: 0.85,
   includeCover: false,

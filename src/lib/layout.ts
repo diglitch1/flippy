@@ -1,15 +1,15 @@
 import {
-  CARD_WIDTH_MAX_IN,
-  CARD_WIDTH_MIN_IN,
+  CARD_WIDTH_MAX_CM,
+  CARD_WIDTH_MIN_CM,
   DEFAULT_FPS,
-  GUTTER_MAX_IN,
-  GUTTER_MIN_IN,
-  MAX_CARD_HEIGHT_IN,
+  GUTTER_MAX_CM,
+  GUTTER_MIN_CM,
+  MAX_CARD_HEIGHT_CM,
   MAX_FRAMES,
   MIN_FRAMES,
-  OUTER_MARGIN_IN,
+  OUTER_MARGIN_CM,
   PAPER_SIZES,
-  SAFE_MARGIN_IN,
+  SAFE_MARGIN_CM,
 } from '../constants';
 import type { BindingSide, CardSlot, FlipbookOptions, Layout } from '../types';
 
@@ -18,44 +18,44 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 const isHorizontalBinding = (side: BindingSide) => side === 'left' || side === 'right';
 
 /**
- * Width (inches) available for the image inside the requested outer card width.
+ * Width (cm) available for the image inside the requested outer card width.
  * On a horizontal bind the gutter eats into width; otherwise only safe margins do.
  */
-function availableImageWidth(cardWidthIn: number, gutterIn: number, side: BindingSide): number {
+function availableImageWidth(cardWidthCm: number, gutterCm: number, side: BindingSide): number {
   const freeWidth = isHorizontalBinding(side)
-    ? cardWidthIn - gutterIn - SAFE_MARGIN_IN
-    : cardWidthIn - 2 * SAFE_MARGIN_IN;
-  return Math.max(0.1, freeWidth);
+    ? cardWidthCm - gutterCm - SAFE_MARGIN_CM
+    : cardWidthCm - 2 * SAFE_MARGIN_CM;
+  return Math.max(0.2, freeWidth);
 }
 
 /**
  * Full flipbook layout for the given options and source video aspect ratio.
- * All geometry is in inches with origin at the page's top-left corner.
+ * All geometry is in centimeters with origin at the page's top-left corner.
  */
 export function computeLayout(opts: FlipbookOptions, videoAspect: number): Layout {
   const aspect = videoAspect > 0 ? videoAspect : 4 / 3;
-  const { paper, bindingSide, gutterIn } = opts;
-  const cardWidthIn = clamp(opts.cardWidthIn, CARD_WIDTH_MIN_IN, CARD_WIDTH_MAX_IN);
-  const gutter = clamp(gutterIn, GUTTER_MIN_IN, GUTTER_MAX_IN);
+  const { paper, bindingSide, gutterCm } = opts;
+  const cardWidthCm = clamp(opts.cardWidthCm, CARD_WIDTH_MIN_CM, CARD_WIDTH_MAX_CM);
+  const gutter = clamp(gutterCm, GUTTER_MIN_CM, GUTTER_MAX_CM);
   const horizontal = isHorizontalBinding(bindingSide);
 
   // 1. Image dimensions (preserve aspect, cap height).
-  let imgW = availableImageWidth(cardWidthIn, gutter, bindingSide);
+  let imgW = availableImageWidth(cardWidthCm, gutter, bindingSide);
   let imgH = imgW / aspect;
-  if (imgH > MAX_CARD_HEIGHT_IN) {
-    const factor = MAX_CARD_HEIGHT_IN / imgH;
+  if (imgH > MAX_CARD_HEIGHT_CM) {
+    const factor = MAX_CARD_HEIGHT_CM / imgH;
     imgW *= factor;
-    imgH = MAX_CARD_HEIGHT_IN;
+    imgH = MAX_CARD_HEIGHT_CM;
   }
 
   // 2. Outer card box = image + gutter on the bound edge + safe margins elsewhere.
-  const cardW = horizontal ? imgW + gutter + SAFE_MARGIN_IN : imgW + 2 * SAFE_MARGIN_IN;
-  const cardH = horizontal ? imgH + 2 * SAFE_MARGIN_IN : imgH + gutter + SAFE_MARGIN_IN;
+  const cardW = horizontal ? imgW + gutter + SAFE_MARGIN_CM : imgW + 2 * SAFE_MARGIN_CM;
+  const cardH = horizontal ? imgH + 2 * SAFE_MARGIN_CM : imgH + gutter + SAFE_MARGIN_CM;
 
   // 3. Grid that fits the printable area.
-  const { wIn, hIn } = PAPER_SIZES[paper];
-  const usableW = wIn - 2 * OUTER_MARGIN_IN;
-  const usableH = hIn - 2 * OUTER_MARGIN_IN;
+  const { wCm, hCm } = PAPER_SIZES[paper];
+  const usableW = wCm - 2 * OUTER_MARGIN_CM;
+  const usableH = hCm - 2 * OUTER_MARGIN_CM;
   const cols = Math.max(1, Math.floor(usableW / cardW));
   const rows = Math.max(1, Math.floor(usableH / cardH));
   const cardsPerPage = cols * rows;
@@ -65,8 +65,8 @@ export function computeLayout(opts: FlipbookOptions, videoAspect: number): Layou
   const slots: CardSlot[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const cardX = OUTER_MARGIN_IN + c * cardW;
-      const cardY = OUTER_MARGIN_IN + r * cardH;
+      const cardX = OUTER_MARGIN_CM + c * cardW;
+      const cardY = OUTER_MARGIN_CM + r * cardH;
       let imgX: number;
       let imgY: number;
       switch (bindingSide) {
@@ -75,7 +75,7 @@ export function computeLayout(opts: FlipbookOptions, videoAspect: number): Layou
           imgY = cardY + (cardH - imgH) / 2;
           break;
         case 'right':
-          imgX = cardX + SAFE_MARGIN_IN;
+          imgX = cardX + SAFE_MARGIN_CM;
           imgY = cardY + (cardH - imgH) / 2;
           break;
         case 'top':
@@ -84,7 +84,7 @@ export function computeLayout(opts: FlipbookOptions, videoAspect: number): Layou
           break;
         case 'bottom':
           imgX = cardX + (cardW - imgW) / 2;
-          imgY = cardY + SAFE_MARGIN_IN;
+          imgY = cardY + SAFE_MARGIN_CM;
           break;
       }
       slots.push({ cardX, cardY, cardW, cardH, imgX, imgY, imgW, imgH });

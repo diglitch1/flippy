@@ -12,9 +12,9 @@ export interface ExtractOptions {
   signal?: AbortSignal;
 }
 
-/** Pixels of width needed to print an image `inches` wide at the target DPI. */
-export function captureWidthForInches(inches: number): number {
-  return Math.ceil(inches * TARGET_DPI);
+/** Pixels of width needed to print an image `cm` wide at the target DPI. */
+export function captureWidthForCm(cm: number): number {
+  return Math.ceil((cm / 2.54) * TARGET_DPI);
 }
 
 interface VideoFrameCallbackHost {
@@ -85,7 +85,7 @@ function canvasToJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Uint8
 /**
  * Extract frames from the loaded video at the given timestamps by seeking and drawing each
  * frame to a canvas, encoded as JPEG. Runs entirely on the main thread against the browser's
- * native decoder — no upload, no ffmpeg.
+ * native decoder, with no upload and no ffmpeg.
  */
 export async function extractFrames(
   info: VideoInfo,
