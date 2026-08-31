@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  cardWidthForTarget,
   computeLayout,
+  effectiveFrameCount,
   fpsForFrameCount,
   recommendFrameCount,
   sampleTimestamps,
@@ -18,6 +20,8 @@ const baseOpts = (over: Partial<FlipbookOptions> = {}): FlipbookOptions => ({
   includeCover: false,
   title: '',
   credits: '',
+  grayscale: false,
+  boomerang: false,
   ...over,
 });
 
@@ -72,6 +76,29 @@ describe('computeLayout', () => {
     const a4 = computeLayout(baseOpts({ paper: 'a4' }), 16 / 9);
     // A4 is narrower and taller than Letter, so at least one grid dimension differs.
     expect(letter.cols !== a4.cols || letter.rows !== a4.rows).toBe(true);
+  });
+});
+
+describe('cardWidthForTarget', () => {
+  it('picks a width that fits at least the requested cards per sheet', () => {
+    const w = cardWidthForTarget(24, baseOpts(), 16 / 9);
+    const { cardsPerPage } = computeLayout(baseOpts({ cardWidthCm: w }), 16 / 9);
+    expect(cardsPerPage).toBeGreaterThanOrEqual(24);
+  });
+  it('needs a smaller-or-equal card to fit more per sheet', () => {
+    const wFew = cardWidthForTarget(6, baseOpts(), 16 / 9);
+    const wMany = cardWidthForTarget(24, baseOpts(), 16 / 9);
+    expect(wMany).toBeLessThanOrEqual(wFew);
+  });
+});
+
+describe('effectiveFrameCount', () => {
+  it('is unchanged without boomerang', () => {
+    expect(effectiveFrameCount(10, false)).toBe(10);
+  });
+  it('doubles minus the two shared endpoints with boomerang', () => {
+    expect(effectiveFrameCount(10, true)).toBe(18);
+    expect(effectiveFrameCount(1, true)).toBe(1);
   });
 });
 

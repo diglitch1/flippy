@@ -94,6 +94,27 @@ export function computeLayout(opts: FlipbookOptions, videoAspect: number): Layou
   return { cols, rows, cardsPerPage, pageCount, cardW, cardH, imgW, imgH, slots };
 }
 
+/**
+ * Largest card width (cm) whose page still fits at least `target` cards, for the current
+ * paper/gutter/aspect. Used by the "cards per sheet" quick presets. Falls back to the
+ * smallest allowed width if even that can't reach the target.
+ */
+export function cardWidthForTarget(target: number, opts: FlipbookOptions, videoAspect: number): number {
+  let best = CARD_WIDTH_MIN_CM;
+  for (let w = CARD_WIDTH_MAX_CM; w >= CARD_WIDTH_MIN_CM; w -= 0.1) {
+    const width = Math.round(w * 10) / 10;
+    const { cardsPerPage } = computeLayout({ ...opts, cardWidthCm: width }, videoAspect);
+    if (cardsPerPage >= target) return width;
+  }
+  return best;
+}
+
+/** Total cards actually produced, accounting for boomerang (forward + reversed middle). */
+export function effectiveFrameCount(frameCount: number, boomerang: boolean): number {
+  if (!boomerang) return frameCount;
+  return Math.max(1, frameCount * 2 - 2);
+}
+
 /** Suggested frame count for a clip length at a target capture fps, clamped to sane bounds. */
 export function recommendFrameCount(durationSeconds: number, fps = DEFAULT_FPS): number {
   return clamp(Math.round(durationSeconds * fps), MIN_FRAMES, MAX_FRAMES);
