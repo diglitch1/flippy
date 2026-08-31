@@ -129,7 +129,7 @@ export async function buildFlipbookPdf(
 
   const doc = await PDFDocument.create();
   doc.setTitle(opts.title.trim() || 'Flipbook');
-  doc.setCreator('Flipbook Maker');
+  doc.setCreator('Flippy');
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
 

@@ -1,4 +1,4 @@
-# Flipbook Maker 🎞️
+# Flippy 🎞️
 
 Turn a short video into a **print-at-home flipbook**: a PDF of small numbered cards you
 print, cut out, stack, and staple into a book you can thumb through to replay the clip.

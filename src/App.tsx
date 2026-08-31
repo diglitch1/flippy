@@ -125,7 +125,7 @@ export default function App() {
   return (
     <main className="app">
       <header className="app__header">
-        <h1>Flipbook Maker</h1>
+        <h1>Flippy</h1>
         <p className="app__tagline">
           Turn a short video into a printable, thumb-flip flipbook, all in your browser.
         </p>
