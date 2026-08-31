@@ -21,24 +21,41 @@ interface VideoFrameCallbackHost {
   requestVideoFrameCallback?: (cb: () => void) => number;
 }
 
-/** Seek the element to `time` and resolve once the frame is ready to be drawn. */
+/**
+ * Seek the element to `time` and resolve once the frame is ready to be drawn.
+ * Resolves on the `seeked` event (the decoded frame is then drawable). When available,
+ * requestVideoFrameCallback is used as a best-effort accuracy boost, but bounded by a short
+ * timeout so a detached/headless video (where rVFC may never fire) can't stall the loop.
+ */
 function seekTo(el: HTMLVideoElement, time: number): Promise<void> {
   return new Promise((resolve, reject) => {
+    let settled = false;
+    let fallback: ReturnType<typeof setTimeout> | undefined;
+
     const cleanup = () => {
       el.removeEventListener('seeked', onSeeked);
       el.removeEventListener('error', onError);
+      if (fallback) clearTimeout(fallback);
+    };
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve();
     };
     const onSeeked = () => {
-      cleanup();
       const host = el as HTMLVideoElement & VideoFrameCallbackHost;
       if (typeof host.requestVideoFrameCallback === 'function') {
-        // Wait until the seeked frame is actually presented for a pixel-accurate grab.
-        host.requestVideoFrameCallback(() => resolve());
+        host.requestVideoFrameCallback(() => finish());
+        // Don't wait forever on a frame that may never be presented (headless/detached).
+        fallback = setTimeout(finish, 120);
       } else {
-        resolve();
+        finish();
       }
     };
     const onError = () => {
+      if (settled) return;
+      settled = true;
       cleanup();
       reject(new Error(`Failed to seek to ${time.toFixed(2)}s`));
     };
