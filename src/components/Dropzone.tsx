@@ -50,7 +50,7 @@ export function Dropzone({ onFile, disabled }: Props) {
       <p className="dropzone__hint">
         Up to ~1 minute works best. .mp4, .mov, or .webm.
         <br />
-        Everything happens in your browser — your video never leaves your device.
+        Everything happens in your browser. Your video never leaves your device.
       </p>
     </div>
   );

@@ -5,15 +5,15 @@ import { ProgressBar } from './components/ProgressBar';
 import { PreviewGrid } from './components/PreviewGrid';
 import { Instructions } from './components/Instructions';
 import {
-  DEFAULT_CARD_WIDTH_IN,
-  DEFAULT_GUTTER_IN,
+  DEFAULT_CARD_WIDTH_CM,
+  DEFAULT_GUTTER_CM,
   DEFAULT_JPEG_QUALITY,
   LONG_CLIP_WARN_SECONDS,
 } from './constants';
 import type { FlipbookOptions, VideoInfo } from './types';
 import { loadVideo, releaseVideo, validateVideoFile } from './lib/video';
 import { computeLayout, recommendFrameCount, sampleTimestamps } from './lib/layout';
-import { captureWidthForInches, extractFrames } from './lib/frames';
+import { captureWidthForCm, extractFrames } from './lib/frames';
 import { buildFlipbookPdf } from './lib/pdf';
 
 type Stage = 'idle' | 'loaded' | 'generating' | 'done';
@@ -21,9 +21,9 @@ type Stage = 'idle' | 'loaded' | 'generating' | 'done';
 function defaultOptions(duration: number): FlipbookOptions {
   return {
     frameCount: recommendFrameCount(duration),
-    paper: 'letter',
-    cardWidthIn: DEFAULT_CARD_WIDTH_IN,
-    gutterIn: DEFAULT_GUTTER_IN,
+    paper: 'a4',
+    cardWidthCm: DEFAULT_CARD_WIDTH_CM,
+    gutterCm: DEFAULT_GUTTER_CM,
     bindingSide: 'left',
     jpegQuality: DEFAULT_JPEG_QUALITY,
     includeCover: false,
@@ -81,7 +81,7 @@ export default function App() {
     revokeAll();
     try {
       const layout = computeLayout({ ...options }, video.aspect);
-      const maxWidthPx = captureWidthForInches(layout.imgW);
+      const maxWidthPx = captureWidthForCm(layout.imgW);
       const timestamps = sampleTimestamps(options.frameCount, trim.start, trim.end);
       const frames = await extractFrames(video, timestamps, {
         maxWidthPx,
@@ -123,7 +123,7 @@ export default function App() {
       <header className="app__header">
         <h1>Flipbook Maker</h1>
         <p className="app__tagline">
-          Turn a short video into a printable, thumb-flip flipbook — all in your browser.
+          Turn a short video into a printable, thumb-flip flipbook, all in your browser.
         </p>
       </header>
 
@@ -143,7 +143,7 @@ export default function App() {
           <div className="workspace__panel">
             {longClip && (
               <div className="alert alert--warn">
-                This clip is {video.duration.toFixed(0)}s. Long clips make many pages — trim it below
+                This clip is {video.duration.toFixed(0)}s. Long clips make many pages; trim it below
                 for a tidier flipbook.
               </div>
             )}

@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
 import {
-  CARD_WIDTH_MAX_IN,
-  CARD_WIDTH_MIN_IN,
-  GUTTER_MAX_IN,
-  GUTTER_MIN_IN,
+  CARD_WIDTH_MAX_CM,
+  CARD_WIDTH_MIN_CM,
+  GUTTER_MAX_CM,
+  GUTTER_MIN_CM,
   MAX_FRAMES,
   MIN_FRAMES,
-  SMOOTHNESS_TIERS,
   SOFT_MAX_PAGES,
   smoothnessForFps,
 } from '../constants';
@@ -34,10 +33,7 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
   const set = <K extends keyof FlipbookOptions>(key: K, value: FlipbookOptions[K]) =>
     onChange({ ...options, [key]: value });
 
-  const layout = useMemo(
-    () => computeLayout({ ...options }, aspect),
-    [options, aspect],
-  );
+  const layout = useMemo(() => computeLayout({ ...options }, aspect), [options, aspect]);
   const effFps = fpsForFrameCount(options.frameCount, clipSeconds);
   const tier = smoothnessForFps(effFps);
   const manyPages = layout.pageCount > SOFT_MAX_PAGES;
@@ -46,6 +42,7 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
 
   return (
     <div className="controls">
+      {/* Frames / smoothness */}
       <div className="field">
         <label className="field__label">
           Frames <span className="field__value">{options.frameCount}</span>
@@ -58,6 +55,10 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
             Recommend
           </button>
         </label>
+        <p className="field__hint">
+          How many still pictures are pulled from your clip, one per card. More frames means
+          smoother motion, but more cards to print and cut.
+        </p>
         <input
           type="range"
           min={MIN_FRAMES}
@@ -67,21 +68,27 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
           disabled={busy}
         />
         <div className={`smoothness smoothness--${tier.label.toLowerCase()}`}>
-          <strong>{tier.label}</strong> · {tier.blurb} · ~{effFps.toFixed(1)} fps
+          <strong>{tier.label}</strong> · {tier.blurb} · about {effFps.toFixed(1)} pictures per second
         </div>
         <ul className="smoothness__legend">
-          {SMOOTHNESS_TIERS.filter((t) => isFinite(t.maxFps)).map((t) => (
-            <li key={t.label}>
-              <b>{t.label}</b> ≤{t.maxFps} fps
-            </li>
-          ))}
+          <li>
+            <b>Sketchy</b> (up to 6/s): jumpy, stop-motion look
+          </li>
+          <li>
+            <b>Decent</b> (up to 10/s): clearly moving, slight flicker
+          </li>
+          <li>
+            <b>Smooth</b> (12 to 15/s): fluid when you thumb it
+          </li>
         </ul>
       </div>
 
+      {/* Trim */}
       <div className="field">
         <label className="field__label">
-          Trim <span className="field__value">{trim.start.toFixed(1)}s – {trim.end.toFixed(1)}s</span>
+          Trim <span className="field__value">{trim.start.toFixed(1)}s to {trim.end.toFixed(1)}s</span>
         </label>
+        <p className="field__hint">Pick which part of the clip becomes the flipbook.</p>
         <div className="trim">
           <input
             type="range"
@@ -104,13 +111,15 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
         </div>
       </div>
 
+      {/* Paper + bind edge */}
       <div className="field field--row">
         <div>
           <label className="field__label">Paper</label>
           <select value={options.paper} onChange={(e) => set('paper', e.target.value as PaperSize)} disabled={busy}>
-            <option value="letter">US Letter</option>
             <option value="a4">A4</option>
+            <option value="letter">US Letter</option>
           </select>
+          <p className="field__hint">Match the paper in your printer.</p>
         </div>
         <div>
           <label className="field__label">Bind edge</label>
@@ -124,46 +133,57 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
             <option value="top">Top</option>
             <option value="bottom">Bottom</option>
           </select>
+          <p className="field__hint">The edge you staple. You flip the opposite edge.</p>
         </div>
       </div>
 
+      {/* Card width */}
       <div className="field">
         <label className="field__label">
-          Card width <span className="field__value">{options.cardWidthIn.toFixed(2)} in</span>
+          Card size <span className="field__value">{options.cardWidthCm.toFixed(1)} cm wide</span>
         </label>
+        <p className="field__hint">
+          How big each printed card is. Smaller cards fit more per page, so less paper and cutting.
+        </p>
         <input
           type="range"
-          min={CARD_WIDTH_MIN_IN}
-          max={CARD_WIDTH_MAX_IN}
-          step={0.05}
-          value={options.cardWidthIn}
-          onChange={(e) => set('cardWidthIn', Number(e.target.value))}
+          min={CARD_WIDTH_MIN_CM}
+          max={CARD_WIDTH_MAX_CM}
+          step={0.1}
+          value={options.cardWidthCm}
+          onChange={(e) => set('cardWidthCm', Number(e.target.value))}
           disabled={busy}
         />
       </div>
 
+      {/* Gutter */}
       <div className="field">
         <label className="field__label">
-          Binding gutter <span className="field__value">{options.gutterIn.toFixed(2)} in</span>
+          Staple margin <span className="field__value">{options.gutterCm.toFixed(1)} cm</span>
         </label>
+        <p className="field__hint">
+          A blank strip along the bind edge so the staple does not cover the picture. About 1.3 cm
+          is right for a stapler; use 2 cm or more if you glue or clip the spine.
+        </p>
         <input
           type="range"
-          min={GUTTER_MIN_IN}
-          max={GUTTER_MAX_IN}
-          step={0.05}
-          value={options.gutterIn}
-          onChange={(e) => set('gutterIn', Number(e.target.value))}
+          min={GUTTER_MIN_CM}
+          max={GUTTER_MAX_CM}
+          step={0.1}
+          value={options.gutterCm}
+          onChange={(e) => set('gutterCm', Number(e.target.value))}
           disabled={busy}
         />
-        <p className="field__hint">0.5 in suits staples; 0.75 in if you glue or clip the spine.</p>
       </div>
 
+      {/* Title */}
       <div className="field">
         <label className="field__label">Title (optional)</label>
+        <p className="field__hint">Printed on the first page of the PDF.</p>
         <input
           type="text"
           value={options.title}
-          placeholder="Shown on the first page"
+          placeholder="e.g. Grandpa's birthday"
           onChange={(e) => set('title', e.target.value)}
           disabled={busy}
           maxLength={60}
@@ -173,11 +193,11 @@ export function Controls({ options, onChange, trim, onTrimChange, duration, aspe
       <div className={`estimate${manyPages ? ' estimate--warn' : ''}`}>
         <strong>{layout.pageCount}</strong> page{layout.pageCount === 1 ? '' : 's'} to print ·{' '}
         <strong>{layout.cardsPerPage}</strong> cards per sheet
-        {manyPages && <span className="estimate__note"> — that’s a lot of cutting; consider fewer frames.</span>}
+        {manyPages && <span className="estimate__note"> (that is a lot of cutting; consider fewer frames)</span>}
       </div>
 
       <button type="button" className="btn btn--primary" onClick={onGenerate} disabled={busy}>
-        {busy ? 'Working…' : 'Generate flipbook PDF'}
+        {busy ? 'Working...' : 'Generate flipbook PDF'}
       </button>
     </div>
   );

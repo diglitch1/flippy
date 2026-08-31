@@ -12,7 +12,7 @@ export function ProgressBar({ done, total, label }: Props) {
         <div className="progress__fill" style={{ width: `${pct}%` }} />
       </div>
       <p className="progress__label">
-        {label ?? 'Capturing frames'} — {done} / {total} ({pct}%)
+        {label ?? 'Capturing frames'}: {done} / {total} ({pct}%)
       </p>
     </div>
   );
