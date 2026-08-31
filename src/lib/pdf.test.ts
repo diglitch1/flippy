@@ -36,6 +36,8 @@ const opts = (over: Partial<FlipbookOptions> = {}): FlipbookOptions => ({
   includeCover: false,
   title: 'Test Book',
   credits: '',
+  grayscale: false,
+  boomerang: false,
   ...over,
 });
 

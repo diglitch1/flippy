@@ -43,6 +43,10 @@ export interface FlipbookOptions {
   includeCover: boolean;
   title: string;
   credits: string;
+  /** Capture frames in grayscale (cheaper to print). */
+  grayscale: boolean;
+  /** Append reversed frames so the flip plays forward then back (a seamless loop). */
+  boomerang: boolean;
 }
 
 /** Geometry for one card slot on a page, in centimeters (origin = top-left of page). */

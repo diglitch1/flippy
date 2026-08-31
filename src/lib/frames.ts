@@ -6,6 +6,8 @@ export interface ExtractOptions {
   maxWidthPx: number;
   /** JPEG quality 0..1. */
   quality?: number;
+  /** Capture in grayscale (cheaper to print). */
+  grayscale?: boolean;
   /** Called after each frame with (completed, total). */
   onProgress?: (done: number, total: number) => void;
   /** Abort in-flight extraction. */
@@ -104,6 +106,7 @@ export async function extractFrames(
   canvas.height = captureH;
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('Canvas 2D context unavailable');
+  if (opts.grayscale) ctx.filter = 'grayscale(1)';
 
   const frames: Frame[] = [];
   const total = timestamps.length;
@@ -118,4 +121,14 @@ export async function extractFrames(
   }
 
   return frames;
+}
+
+/**
+ * Expand a frame list into the final card sequence. With boomerang on, the reversed middle
+ * frames are appended so the flip plays forward then back for a seamless loop. Cards are
+ * renumbered 1..n in play order.
+ */
+export function buildSequence(frames: Frame[], boomerang: boolean): Frame[] {
+  const seq = boomerang ? [...frames, ...frames.slice(1, -1).reverse()] : frames;
+  return seq.map((f, i) => ({ ...f, index: i + 1 }));
 }
